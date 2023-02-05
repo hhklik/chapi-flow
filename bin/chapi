@@ -1,0 +1,208 @@
+case $1 in
+  "flow")
+    case $2 in
+      "release"|"-r") # end nivel $2
+        case $3 in
+          "start"|"-s")     #end nivel 3
+            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            if [ -z $release ]; then
+              if [ "$USER" != "root" ]; then
+                if [ -d "wp-content-mu-plugins" ]; then
+                  
+                  #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
+                  repo_version=$(grep "Version:" ${PWD##*/}.php | sed 's/ //g' | awk '{print $1}')
+                  version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+                  
+                  if [[ $(git status --porcelain) ]]; then
+                    git stash
+                  fi
+
+                  git checkout develop
+                  git checkout -b "RELEASE/${version_only_number}"
+                  
+                  git checkout -b "CROLFIX/genetate-requirements"
+                  
+                  
+                  
+                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
+                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
+                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
+                  
+                  docker-compose -f docker-compose-wpcli.yml down
+
+                  docker-compose -f docker-compose-python.yml run python python /release/prepare.py
+
+                  docker-compose -f docker-compose-python.yml down
+
+                  git add .
+                  git commit -m "Generate-requiremets-of-${version_only_number}"
+                  #git tag -a $version_only_number -m "${version_only_number}"
+                  #git checkout develop
+                  git checkout "RELEASE/${version_only_number}"
+                  git merge "CROLFIX/genetate-requirements"
+                  git push -u origin "RELEASE/${version_only_number}"
+                  git branch -d "CROLFIX/genetate-requirements"
+                  
+
+
+                  #-------------------- BITACORTA -------------------
+                  
+                  
+                  # current_date=$(date)
+                  # echo -e "------------------------- ${current_date} --------------------------------------" >> release/.bitacora
+                  # echo -e "PosChapin $repo_version" >> release/.bitacora
+                  # echo -e "WordPress Version $wordpress_version" >> release/.bitacora
+                  # #echo -e "PLUGINS" >> release/.bitacora
+                  # #cat release/plugins.json >> release/.bitacora
+                  # #echo -e "\n" >> release/.bitacora
+                  # #echo -e "THEMES" >> release/.bitacora
+                  # #cat release/themes.json >> release/.bitacora
+                  # echo -e "\n" >> release/.bitacora
+                  # echo -e "************************** ${current_date} *************************************" >> release/.bitacora
+                  
+                else
+                  repo_version=$(grep "Version:" ${PWD##*/}.php | sed 's/ //g' | awk '{print $1}')
+                  version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+
+                  git checkout develop
+                  git checkout -b "RELEASE/${version_only_number}"
+                  git push -u origin "RELEASE/${version_only_number}"
+                fi
+              else
+                echo "please exit the root"
+              fi
+            else
+              echo "WARNING: There is already a release"
+            fi
+            ;;
+          "finish"|"-f") # end nivel 3
+            if [ "$USER" != "root" ]; then
+              repo_version=$(grep "Version:" ${PWD##*/}.php | sed 's/ //g' | awk '{print $1}')
+              version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+              
+              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              if [[ $release ]]; then
+                git checkout "${release}"
+                git tag -a $version_only_number -m "${version_only_number}"
+
+                git checkout -b "CHAPI/change-new-version"
+                
+                #change new version
+                this_month=$(date +%m)
+                this_year=$(date +%y)
+                current_version=$repo_version
+                IFS='.' read -r year month n <<< "$current_version"
+                [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
+                new_version="$year.$month.$n"
+                sed -i "s/Version:.*/Version: ${new_version}/g" ${PWD##*/}.php
+
+                git add .
+                git commit -m "Was created new version ${new_version}"
+                git checkout "${release}"
+                git merge "CHAPI/change-new-version"
+                git branch -d "CHAPI/change-new-version" # delete branch local
+              
+
+                git checkout develop
+                git merge "${release}"
+                git push -u origin develop
+                git checkout main
+                git merge "${release}"
+                git push -u origin main
+                git branch -d "${release}" # delete branch release local
+                git push origin :$release # delete remote branch release
+              else
+                echo "no release branch found"
+              fi
+
+            else
+              echo "please exit the root"
+            fi
+            
+            
+            ;;
+          "delete"|"-d")
+            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            if [[ $release ]]; then
+              git checkout develop
+              git branch -d "${release}" # delete branch local
+              git push origin :$release # delete branch remote
+            fi
+            
+            ;;
+        esac
+        
+         
+        ;;
+      "feature"|"-f") # end nivel 2
+        case $3 in
+          "start"|"-s") # en nivel 3
+            if [ "$USER" != "root" ]; then
+              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              if [ -z $release ]; then
+                prompt=$4
+                contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
+                contador=$(echo $contador_curl | sed 's/{//g' | sed 's/}//g' | sed 's/value//g' | sed 's/ //g' | sed 's/://g' | sed 's/"//g')        
+                texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
+                
+                # verify is changes exist create to stash the changes
+                if [[ $(git status --porcelain) ]]; then
+                  git stash
+                fi
+                
+                git checkout develop
+                git checkout -b "CHAPI-${contador}/${texto}"
+                git push --set-upstream origin "CHAPI-${contador}/${texto}"
+                echo -e "CHAPI-${contador}/${texto} :: new branch created"
+              else
+                echo "WARNING: A feature cannot be created because a ${release} exists"
+              fi
+            else
+              echo "please exit the root"
+            fi      
+            ;;
+          "finish"|"-f") #$3
+            prompt=$4
+            if [ $prompt ]; then
+              feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
+              git checkout $feature
+              if [[ $(git status --porcelain) ]]; then
+                echo -e "************************ WARNING *************************************"
+                echo -e "********* The change is active please commits in ${feature} **********"
+                echo -e "**********************************************************************"
+              else
+                new_feature="MERGECHED-${feature}"
+                git branch -m $feature $new_feature
+                git branch -d $feature # delete local branch
+                git push origin :$feature # delete remote branch
+                git checkout $new_feature
+                git push origin $new_feature
+                git checkout develop
+                git merge $new_feature
+                git push -u origin develop
+              fi
+            else
+              echo "WARNING: Please insert prompt of feature, example CHAPI-#number prompt is number"
+            fi
+            
+           
+            ;;
+          "delete"|"-d")
+            prompt=$4
+            feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
+            git push origin :$feature
+            git branch -d $feature
+            ;;
+        esac
+        
+        ;;
+    esac
+    ;;
+  "--version"|"-v"|"--v")
+    repo_version=$(grep "Version:[0-9 ][0-9]*\.[0-9][0-9]*.*" /usr/local/etc/chapi.d/.version | sed 's/[ #]//g' | awk '{print $1}')
+    echo "Chapi flow $repo_version"
+    ;;
+  *)
+    echo "$1 command not recognized"
+    ;;
+esac
