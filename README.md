@@ -5,7 +5,7 @@
 
   ## down load zip
   ```
-    sudo wget http://github.com/hhklik/chapi-flow/zipball/main/
+    sudo wget https://github.com/hhklik/chapi-flow/archive/main.zip
     sudo unzip chapi-flow.zip
     sudo sh install.sh
   ``` 
