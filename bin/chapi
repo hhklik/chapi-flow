@@ -1,6 +1,6 @@
 case $1 in
   "flow")
-    
+    git pull
     file_version=""
     if [ -e ${PWD##*/}.php ]; then
       file_version="${PWD##*/}.php"
@@ -11,7 +11,7 @@ case $1 in
     fi
 
     case $2 in
-      "release"|"-r") # end nivel $2
+      "release"|"-r") # end nivel 2
         case $3 in
           "start"|"-s")     #end nivel 3
             release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
@@ -34,6 +34,7 @@ case $1 in
                   
                   
                   
+                  rm -f release/plugins.json release/plugins-inactive.json release/themes.json
                   docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
                   docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
                   docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
@@ -95,32 +96,24 @@ case $1 in
                 git checkout "${release}"
                 git tag -a $version_only_number -m "${version_only_number}"
 
-                git checkout -b "CHAPI/change-new-version"
+                mergeched_release="MERGECHED-${release}"
+                git branch -m $release $mergeched_release
+                git branch -d $release # delete local branch
+                git push origin :$release # delete remote branch
+                git checkout $mergeched_release
+                git push origin $mergeched_release
+                #git checkout develop
+                #git merge $mergeched_release
+                #git push -u origin develop
                 
-                #change new version
-                this_month=$(date +%m)
-                this_year=$(date +%y)
-                current_version=$repo_version
-                IFS='.' read -r year month n <<< "$current_version"
-                [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
-                new_version="$year.$month.$n"
-                sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
-
-                git add .
-                git commit -m "Was created new version ${new_version}"
-                git checkout "${release}"
-                git merge "CHAPI/change-new-version"
-                git branch -d "CHAPI/change-new-version" # delete branch local
-              
-
                 git checkout develop
-                git merge "${release}"
+                git merge "${mergeched_release}"
                 git push -u origin develop
                 git checkout main
-                git merge "${release}"
+                git merge "${mergeched_release}"
                 git push -u origin main
-                git branch -d "${release}" # delete branch release local
-                git push origin :$release # delete remote branch release
+                
+                
               else
                 echo "no release branch found"
               fi
@@ -175,27 +168,29 @@ case $1 in
             prompt=$4
             if [ $prompt ]; then
               feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
-              git checkout $feature
-              if [[ $(git status --porcelain) ]]; then
-                echo -e "************************ WARNING *************************************"
-                echo -e "********* The change is active please commits in ${feature} **********"
-                echo -e "**********************************************************************"
+              if [ $feature ]; then
+                git checkout $feature
+                if [[ $(git status --porcelain) ]]; then
+                  echo -e "************************ WARNING *************************************"
+                  echo -e "********* The change is active please commits in ${feature} **********"
+                  echo -e "**********************************************************************"
+                else
+                  new_feature="MERGECHED-${feature}"
+                  git branch -m $feature $new_feature
+                  git branch -d $feature # delete local branch
+                  git push origin :$feature # delete remote branch
+                  git checkout $new_feature
+                  git push origin $new_feature
+                  git checkout develop
+                  git merge $new_feature
+                  git push -u origin develop
+                fi
               else
-                new_feature="MERGECHED-${feature}"
-                git branch -m $feature $new_feature
-                git branch -d $feature # delete local branch
-                git push origin :$feature # delete remote branch
-                git checkout $new_feature
-                git push origin $new_feature
-                git checkout develop
-                git merge $new_feature
-                git push -u origin develop
+                echo "WARNING: not found branch named feature chapi"
               fi
             else
               echo "WARNING: Please insert prompt of feature, example CHAPI-#number prompt is number"
             fi
-            
-           
             ;;
           "delete"|"-d")
             prompt=$4
@@ -205,7 +200,177 @@ case $1 in
             git branch -d $feature
             ;;
         esac
-        
+        ;;
+      "bugfix"|"-b"|"-bf") # end nivel 2
+        case $3 in
+          "start"|"-s") # en nivel 3
+            if [ "$USER" != "root" ]; then
+              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              if [ $release ]; then
+                prompt=$4
+                contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
+                contador=$(echo $contador_curl | sed 's/{//g' | sed 's/}//g' | sed 's/value//g' | sed 's/ //g' | sed 's/://g' | sed 's/"//g')        
+                texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
+                
+                # verify is changes exist create to stash the changes
+                if [[ $(git status --porcelain) ]]; then
+                  git stash
+                fi
+                
+                git checkout $release
+                branch_name="BUGFIX-${contador}/${texto}"
+                git checkout -b $branch_name
+                git push --set-upstream origin $branch_name
+                echo -e "${branch_name} :: new branch created"
+              else
+                echo "WARNING: A bugfix cannot be created because a not exists a release"
+              fi
+            else
+              echo "please exit the root"
+            fi
+            ;;
+          "finish"|"-f") # en nivel 3
+            prompt=$4
+            if [ $prompt ]; then
+              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              bugfix=$(git branch | grep "BUGFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
+              if [ $bugfix ]; then
+                git checkout $bugfix
+                if [[ $(git status --porcelain) ]]; then
+                  echo -e "************************ WARNING *************************************"
+                  echo -e "********* The change is active please commits in ${bugfix} **********"
+                  echo -e "**********************************************************************"
+                else
+                  new_bugfix="MERGECHED-${bugfix}"
+                  git branch -m $bugfix $new_bugfix
+                  git branch -d $bugfix # delete local branch
+                  git push origin :$bugfix # delete remote branch
+                  git checkout $new_bugfix
+                  git push origin $new_bugfix
+                  git checkout $release
+                  git merge $new_bugfix
+                  git push -u origin $release
+                fi
+              else
+                echo "WARNING: not found branch named bugfix"
+              fi
+            else
+              echo "WARNING: Please insert prompt of feature, example CHAPI-#number prompt is number"
+            fi
+            ;;   
+          "delete"|"-d") # en nivel 3
+            prompt=$4
+            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            bugfix=$(git branch | grep "BUGFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
+            git push origin :$bugfix
+            git checkout $release
+            git branch -d $bugfix
+            ;;      
+        esac
+        ;;
+      "hotfix"|"-h"|"-hf") # end nivel 2
+        case $3 in
+          "start"|"-s") # en nivel 3
+            if [ "$USER" != "root" ]; then
+              main=$(git branch | grep "main" | sed 's/*//g' | sed 's/ //g')
+              if [ $main ]; then
+                prompt=$4
+                contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
+                contador=$(echo $contador_curl | sed 's/{//g' | sed 's/}//g' | sed 's/value//g' | sed 's/ //g' | sed 's/://g' | sed 's/"//g')        
+                texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
+                
+                # verify is changes exist create to stash the changes
+                if [[ $(git status --porcelain) ]]; then
+                  git stash
+                fi
+                
+                git checkout $main
+                branch_name="HOTFIX-${contador}/${texto}"
+                git checkout -b $branch_name
+                git push --set-upstream origin $branch_name
+                echo -e "${branch_name} :: new branch created"
+              else
+                echo "WARNING: A bugfix cannot be created because a not exists a main"
+              fi
+            else
+              echo "please exit the root"
+            fi
+            ;;
+          "finish"|"-f") # en nivel 3
+            prompt=$4
+            if [ $prompt ]; then
+              main=$(git branch | grep "main" | sed 's/*//g' | sed 's/ //g')
+              hotfix=$(git branch | grep "HOTFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
+              if [ $hotfix ]; then
+                git checkout $hotfix
+                if [[ $(git status --porcelain) ]]; then
+                  echo -e "************************ WARNING *************************************"
+                  echo -e "********* The change is active please commits in ${hotfix} **********"
+                  echo -e "**********************************************************************"
+                else
+                  new_hotfix="MERGECHED-${hotfix}"
+                  git branch -m $hotfix $new_hotfix
+                  git branch -d $hotfix # delete local branch
+                  git push origin :$hotfix # delete remote branch
+                  git checkout $new_hotfix
+                  git push origin $new_hotfix
+                  git checkout $main
+                  git merge $new_hotfix
+                  git push -u origin $main
+                  git checkout develop
+                  git merge $main
+                  git push -u origin develop
+                fi
+              else
+                echo "WARNING: not found branch named bugfix"
+              fi
+            else
+              echo "WARNING: Please insert prompt of feature, example CHAPI-#number prompt is number"
+            fi
+            ;;   
+          "delete"|"-d") # en nivel 3
+            prompt=$4
+            main=$(git branch | grep "main" | sed 's/*//g' | sed 's/ //g')
+            hotfix=$(git branch | grep "HOTFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
+            git push origin :$hotfix
+            git checkout $main
+            git branch -d $hotfix
+            ;;      
+        esac
+        ;;
+      "new-stage"|"-ns")
+        mergeched_release=$(git branch | grep "MERGECHED-RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+        if [ $mergeched_release ]; then
+          repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+          version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+          git checkout main
+          git checkout -b "CROLFIX/change-new-version"
+              
+          #change new version
+          this_month=$(date +%m)
+          this_year=$(date +%y)
+          current_version=$version_only_number
+          IFS='.' read -r year month n <<< "$current_version"
+          [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
+          new_version="$year.$month.$n"
+          sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
+
+          git add .
+          git commit -m "Was created new version ${new_version}"
+          git checkout main
+          git merge "CROLFIX/change-new-version"
+          git branch -d "CROLFIX/change-new-version" # delete branch local
+
+          git checkout develop
+          git merge main
+
+          git branch -d "${mergeched_release}" # delete branch release local
+          git push origin :$mergeched_release # delete remote branch release
+
+
+        else
+          echo "WARNING: not found MERGECHED-RELEASE"
+        fi
         ;;
     esac
     ;;
