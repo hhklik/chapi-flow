@@ -8,7 +8,7 @@ fi
 chapi_home=$(grep "CHAPI_HOME=" /etc/environment | awk '{print $1}')
 if [ -z $chapi_home ]; then
     echo "aqui"
-    echo "CHAPI_HOME=/etc/chapi.d" >> /etc/environment
+    echo "CHAPI_HOME=/usr/local/etc/chapi.d" >> /etc/environment
     source /etc/environment
 fi
 
