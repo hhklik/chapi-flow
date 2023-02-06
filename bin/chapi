@@ -16,78 +16,77 @@ case $1 in
           "start"|"-s")     #end nivel 3
             branch_count=$(git branch --list CHAPI* | wc -l)
             if [ $branch_count -eq 0 ]; then
-              echo "llego"
-              # release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-              # if [ -z $release ]; then
-              #   if [ "$USER" != "root" ]; then
-              #     if [ -d "wp-content-mu-plugins" ]; then
+              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              if [ -z $release ]; then
+                if [ "$USER" != "root" ]; then
+                  if [ -d "wp-content-mu-plugins" ]; then
                     
-              #       #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
-              #       repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-              #       version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+                    #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
+                    repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+                    version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
                     
-              #       if [[ $(git status --porcelain) ]]; then
-              #         git stash
-              #       fi
+                    if [[ $(git status --porcelain) ]]; then
+                      git stash
+                    fi
 
-              #       git checkout develop
-              #       git checkout -b "RELEASE/${version_only_number}"
+                    git checkout develop
+                    git checkout -b "RELEASE/${version_only_number}"
                     
-              #       git checkout -b "CROLFIX/genetate-requirements"
+                    git checkout -b "CROLFIX/genetate-requirements"
                     
                     
                     
-              #       rm -f release/plugins.json release/plugins-inactive.json release/themes.json
-              #       docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
-              #       docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
-              #       docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
+                    rm -f release/plugins.json release/plugins-inactive.json release/themes.json
+                    docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
+                    docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
+                    docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
                     
-              #       docker-compose -f docker-compose-wpcli.yml down
+                    docker-compose -f docker-compose-wpcli.yml down
 
-              #       docker-compose -f docker-compose-python.yml run python python /release/prepare.py
+                    docker-compose -f docker-compose-python.yml run python python /release/prepare.py
 
-              #       docker-compose -f docker-compose-python.yml down
+                    docker-compose -f docker-compose-python.yml down
 
-              #       git add .
-              #       git commit -m "Generate-requiremets-of-${version_only_number}"
-              #       #git tag -a $version_only_number -m "${version_only_number}"
-              #       #git checkout develop
-              #       git checkout "RELEASE/${version_only_number}"
-              #       git merge "CROLFIX/genetate-requirements"
-              #       git push -u origin "RELEASE/${version_only_number}"
-              #       git branch -d "CROLFIX/genetate-requirements"
+                    git add .
+                    git commit -m "Generate-requiremets-of-${version_only_number}"
+                    #git tag -a $version_only_number -m "${version_only_number}"
+                    #git checkout develop
+                    git checkout "RELEASE/${version_only_number}"
+                    git merge "CROLFIX/genetate-requirements"
+                    git push -u origin "RELEASE/${version_only_number}"
+                    git branch -d "CROLFIX/genetate-requirements"
                     
 
 
-              #       #-------------------- BITACORTA -------------------
+                    #-------------------- BITACORTA -------------------
                     
                     
-              #       # current_date=$(date)
-              #       # echo -e "------------------------- ${current_date} --------------------------------------" >> release/.bitacora
-              #       # echo -e "PosChapin $repo_version" >> release/.bitacora
-              #       # echo -e "WordPress Version $wordpress_version" >> release/.bitacora
-              #       # #echo -e "PLUGINS" >> release/.bitacora
-              #       # #cat release/plugins.json >> release/.bitacora
-              #       # #echo -e "\n" >> release/.bitacora
-              #       # #echo -e "THEMES" >> release/.bitacora
-              #       # #cat release/themes.json >> release/.bitacora
-              #       # echo -e "\n" >> release/.bitacora
-              #       # echo -e "************************** ${current_date} *************************************" >> release/.bitacora
+                    # current_date=$(date)
+                    # echo -e "------------------------- ${current_date} --------------------------------------" >> release/.bitacora
+                    # echo -e "PosChapin $repo_version" >> release/.bitacora
+                    # echo -e "WordPress Version $wordpress_version" >> release/.bitacora
+                    # #echo -e "PLUGINS" >> release/.bitacora
+                    # #cat release/plugins.json >> release/.bitacora
+                    # #echo -e "\n" >> release/.bitacora
+                    # #echo -e "THEMES" >> release/.bitacora
+                    # #cat release/themes.json >> release/.bitacora
+                    # echo -e "\n" >> release/.bitacora
+                    # echo -e "************************** ${current_date} *************************************" >> release/.bitacora
                     
-              #     else
-              #       repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-              #       version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+                  else
+                    repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+                    version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
 
-              #       git checkout develop
-              #       git checkout -b "RELEASE/${version_only_number}"
-              #       git push -u origin "RELEASE/${version_only_number}"
-              #     fi
-              #   else
-              #     echo "please exit the root"
-              #   fi
-              # else
-              #   echo "WARNING: There is already a release"
-              # fi
+                    git checkout develop
+                    git checkout -b "RELEASE/${version_only_number}"
+                    git push -u origin "RELEASE/${version_only_number}"
+                  fi
+                else
+                  echo "please exit the root"
+                fi
+              else
+                echo "WARNING: There is already a release"
+              fi
             else
               echo "WARNING: there are features pending merge develop"
               git branch --list CHAPI*
