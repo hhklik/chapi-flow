@@ -365,8 +365,10 @@ case $1 in
           git merge main
           git push -u origin develop
 
-          git branch -d "${mergeched_release}" # delete branch release local
-          git push origin :$mergeched_release # delete remote branch release
+          #git branch -d "${mergeched_release}" # delete branch release local
+          #git push origin :$mergeched_release # delete remote branch release
+          git push origin -d $(git branch -a --list MERGECHED*)
+          git branch -d $(git branch --list MERGECHED*)
 
 
         else
