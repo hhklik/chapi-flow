@@ -85,9 +85,9 @@ case $1 in
               #   else
               #     echo "please exit the root"
               #   fi
-              else
-                echo "WARNING: There is already a release"
-              fi
+              # else
+              #   echo "WARNING: There is already a release"
+              # fi
             else
               echo "WARNING: there are features pending merge develop"
               git branch --list CHAPI*
