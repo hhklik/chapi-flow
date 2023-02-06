@@ -363,6 +363,7 @@ case $1 in
 
           git checkout develop
           git merge main
+          git push -u origin develop
 
           git branch -d "${mergeched_release}" # delete branch release local
           git push origin :$mergeched_release # delete remote branch release
