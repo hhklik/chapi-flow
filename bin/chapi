@@ -201,6 +201,7 @@ case $1 in
             prompt=$4
             feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
             git push origin :$feature
+            git checkout develop
             git branch -d $feature
             ;;
         esac
