@@ -347,35 +347,40 @@ case $1 in
       "new-stage"|"-ns")
         mergeched_release=$(git branch | grep "MERGECHED-RELEASE\/" | sed 's/*//g' | sed 's/ //g')
         if [ $mergeched_release ]; then
+
           repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
           version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
-          git checkout main
-          git checkout -b "CROLFIX/change-new-version"
-              
-          #change new version
-          this_month=$(date +%m)
-          this_year=$(date +%y)
-          current_version=$version_only_number
-          IFS='.' read -r year month n <<< "$current_version"
-          [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
-          new_version="$year.$month.$n"
-          sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
+          if [ git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}' ]; then
+            git checkout main
+            git checkout -b "CROLFIX/change-new-version"
+                
+            #change new version
+            this_month=$(date +%m)
+            this_year=$(date +%y)
+            current_version=$version_only_number
+            IFS='.' read -r year month n <<< "$current_version"
+            [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
+            new_version="$year.$month.$n"
+            sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
 
-          git add .
-          git commit -m "Was created new version ${new_version}"
-          git checkout main
-          git merge "CROLFIX/change-new-version"
-          git push -u origin main
-          git branch -d "CROLFIX/change-new-version" # delete branch local
+            git add .
+            git commit -m "Was created new version ${new_version}"
+            git checkout main
+            git merge "CROLFIX/change-new-version"
+            git push -u origin main
+            git branch -d "CROLFIX/change-new-version" # delete branch local
 
-          git checkout develop
-          git merge main
-          git push -u origin develop
+            git checkout develop
+            git merge main
+            git push -u origin develop
 
-          #git branch -d "${mergeched_release}" # delete branch release local
-          #git push origin -d $mergeched_release # delete remote branch release
-          git push origin -d $(git branch -a --list MERGECHED*)
-          git branch -d $(git branch --list MERGECHED*)
+            #git branch -d "${mergeched_release}" # delete branch release local
+            #git push origin -d $mergeched_release # delete remote branch release
+            git push origin -d $(git branch -a --list MERGECHED*)
+            git branch -d $(git branch --list MERGECHED*)
+          else
+            echo "WARNING: Plese create new release of version ${version_only_number} in github"
+          fi
 
 
         else
