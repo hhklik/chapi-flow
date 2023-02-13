@@ -397,6 +397,43 @@ case $1 in
   "uninstall"|"-ui")
     sh /usr/local/etc/chapi.d/uninstall.sh
     ;;
+  "list"|"ls")
+    case $2 in
+      "check"|"-ck")
+        folders=$(find -name ".git" -type d | sed 's/\.git//g' | sed 's/\.\///g')
+        for folder in $folders; do
+            cd $folder
+            branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+            branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+            branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+            branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+            if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+              echo "this repo is not release please check $folder"         
+            fi
+            cd $POSCHAPIN_HOME
+        done
+        ;;
+      *)
+        echo "WARNING: the command no exist"
+        ;;
+    esac
+    ;;
+  "here")
+    case $2 in
+      "check"|"-ck")
+        branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+        branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+        branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+        branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+        if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+          echo "this repo is not flow correct please check"         
+        fi
+        ;;
+      *)
+        echo "WARNING: the command no exist"
+        ;;
+    esac
+    ;;
   *)
     echo "$1 command not recognized"
     ;;
