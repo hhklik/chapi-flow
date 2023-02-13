@@ -118,6 +118,10 @@ case $1 in
                 git checkout main
                 git merge "${mergeched_release}"
                 git push -u origin main
+
+                # Eliminar mergeched cuando se finalize el release
+                git push origin -d $(git branch -a --list MERGECHED*)
+                git branch -d $(git branch --list MERGECHED*)
                 
                 
               else
@@ -374,11 +378,7 @@ case $1 in
             git checkout develop
             git merge main
             git push -u origin develop
-
-            #git branch -d "${mergeched_release}" # delete branch release local
-            #git push origin -d $mergeched_release # delete remote branch release
-            git push origin -d $(git branch -a --list MERGECHED*)
-            git branch -d $(git branch --list MERGECHED*)
+            
           else
             echo "WARNING: Plese create new release of version ${version_only_number} in github"
           fi
