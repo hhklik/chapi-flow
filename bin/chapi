@@ -392,18 +392,19 @@ case $1 in
           if [ $branch_remote_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ]; then
             echo "Status: please finalize open [CHAPI] features"
           else
-            branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
-            branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
-            if [ $branch_remote_mergeched_count -gt 0 ] || [ $branch_local_mergeched_count -gt 0 ]; then
-              echo "Status: Ready to create a release"
+            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            if [ $release ]; then
+              echo "Status: please finalize the active release"
             else
-              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-              if [ $release ]; then
-                echo "Status: please finalize the active release"
+              branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+              branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+              if [ $branch_remote_mergeched_count -gt 0 ] || [ $branch_local_mergeched_count -gt 0 ]; then
+                echo "Status: Ready to create a release"
               else
                 echo "Status: A release can now be created of version ${version_only_number} in github"
               fi
             fi
+            
             
             
           fi
