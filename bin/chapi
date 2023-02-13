@@ -349,8 +349,8 @@ case $1 in
         esac
         ;;
       "new-stage"|"-ns")
-        mergeched_release=$(git branch | grep "MERGECHED-RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-        if [ $mergeched_release ]; then
+        #mergeched_release=$(git branch | grep "MERGECHED-RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+        #if [ $mergeched_release ]; then
 
           repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
           version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
@@ -384,9 +384,9 @@ case $1 in
           fi
 
 
-        else
-          echo "WARNING: not found MERGECHED-RELEASE"
-        fi
+        #else
+        #  echo "WARNING: not found MERGECHED-RELEASE"
+        #fi
         ;;
     esac
     ;;
