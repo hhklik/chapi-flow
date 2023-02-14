@@ -1,15 +1,19 @@
+git pull
+file_version=""
+if [ -e ${PWD##*/}.php ]; then
+  file_version="${PWD##*/}.php"
+else
+  if [ -e style.css ]; then
+    file_version="style.css"
+  else
+    if [ -e .version ]; then
+      file_version=".version"
+    fi
+  fi 
+  
+fi
 case $1 in
   "flow")
-    git pull
-    file_version=""
-    if [ -e ${PWD##*/}.php ]; then
-      file_version="${PWD##*/}.php"
-    else
-      if [ -e .version ]; then
-        file_version=".version"
-      fi
-    fi
-
     case $2 in
       "release"|"-r") # end nivel 2
         case $3 in
@@ -360,7 +364,10 @@ case $1 in
           this_month=$(date +%m)
           this_year=$(date +%y)
           current_version=$version_only_number
-          IFS='.' read -r year month n <<< "$current_version"
+          #IFS='.' read -r year month n <<< "$current_version"
+          year=$(echo "$current_version" | cut -d'.' -f1)
+          month=$(echo "$current_version" | cut -d'.' -f2)
+          n=$(echo "$current_version" | cut -d'.' -f3)
           [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
           new_version="$year.$month.$n"
           sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
@@ -411,6 +418,11 @@ case $1 in
           
         fi
         ;;
+      "--version"|"-v"|"--v")
+        repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+        version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+        echo "Version: ${version_only_number}"
+        ;;
     esac
     ;;
   "--version"|"-v"|"--v")
@@ -420,21 +432,48 @@ case $1 in
   "uninstall"|"-ui")
     sh /usr/local/etc/chapi.d/uninstall.sh
     ;;
-  "list"|"ls")
+  "repos"|"repositories"|"list")
     case $2 in
       "check"|"-ck")
-        folders=$(find -name ".git" -type d | sed 's/\.git//g' | sed 's/\.\///g')
-        for folder in $folders; do
-            cd $folder
-            branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
-            branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
-            branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
-            branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
-            if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
-              echo "this repo is not release please check $folder"         
-            fi
-            cd $POSCHAPIN_HOME
-        done
+        #if [ "$USER" == "root" ]; then
+          folders=$(find -name ".git" -type d | sed 's/\.git//g' | sed 's/\.\///g')
+          for folder in $folders; do
+              cd $folder
+              git pull
+              # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+              # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+              # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+              # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+              # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+              #   echo "this repo is not release please check $folder"         
+              # fi
+              fileVersion=""
+              if [ -e ${PWD##*/}.php ]; then
+                fileVersion="${PWD##*/}.php"
+              else
+                if [ -e style.css ]; then
+                  fileVersion="style.css"
+                else
+                  if [ -e .version ]; then
+                    fileVersion=".version"
+                  fi
+                fi 
+                
+              fi
+
+              repo_version=$(grep "Version:" ${fileVersion} | sed 's/ //g' | awk '{print $1}')
+              version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+              refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
+              if [ -z $refstags ]; then
+                echo "----------------------------------------------------------------------------"
+                echo "${folder} not release version: ${version_only_number}"
+                echo "............................................................................"
+              fi
+              cd $POSCHAPIN_HOME
+          done
+        # else
+        #   echo "Please enter to root" 
+        # fi
         ;;
       *)
         echo "WARNING: the command no exist"
@@ -444,12 +483,25 @@ case $1 in
   "here")
     case $2 in
       "check"|"-ck")
-        branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
-        branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
-        branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
-        branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
-        if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
-          echo "this repo is not flow correct please check"         
+        if [ "$USER" == "root" ]; then
+          git pull
+          # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+          # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+          # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+          # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+          # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+          #   echo "this repo is not flow correct please check"         
+          # fi
+          repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+          version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+          refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
+          if [ -z $refstags ]; then
+            echo "----------------------------------------------------------------------------"
+            echo "Not release version: ${version_only_number}"
+            echo "............................................................................"
+          fi
+        else
+          echo "Please enter to root" 
         fi
         ;;
       *)
