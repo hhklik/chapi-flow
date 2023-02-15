@@ -28,4 +28,4 @@
     sudo rm -f /usr/local/bin/chapi && sudo rm -rf /usr/local/etc/chapi.d
   ```
 
-</details>
+</details>a
