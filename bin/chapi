@@ -325,12 +325,19 @@ case $1 in
                       git push origin -d $hotfix # delete remote branch
                       git branch -d $hotfix # delete local branch
                     else
-                      echo "not merged $hotfix => develop"
+                      echo ""
+                      echo -e "........................ ERROR ....................................."
+                      echo -e "not merged $hotfix => develop"
+                      echo -e "......................................................................"
                       exit 1
                     fi
                     
                   else
                     echo "not merged $hotfix => main"
+                    echo ""
+                    echo -e "........................ WARNING ....................................."
+                    echo -e "not merged $hotfix => develop"
+                    echo -e "......................................................................"
                     exit 1
                   fi
                   
