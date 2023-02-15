@@ -314,12 +314,12 @@ case $1 in
                   git checkout $main
                   git merge $hotfix
                   veriry_merge=$(git branch --list $hotfix --merged | wc -l)
-                  if [$veriry_merge -gt 0 ]; then
+                  if [ $veriry_merge -gt 0 ]; then
                     git push -u origin $main
                     git checkout develop
                     git merge $hotfix
                     veriry_merge=$(git branch --list $hotfix --merged | wc -l)
-                    if [$veriry_merge -gt 0 ]; then
+                    if [ $veriry_merge -gt 0 ]; then
                       git push -u origin develop
                       git checkout main
                       git push origin -d $hotfix # delete remote branch
