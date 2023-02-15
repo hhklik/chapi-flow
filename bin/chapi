@@ -238,15 +238,25 @@ case $1 in
                   echo -e "The change is active please commits in ${feature}"
                   echo -e "......................................................................"
                 else
-                  new_feature="MERGECHED-${feature}"
-                  git branch -m $feature $new_feature
-                  git branch -d $feature # delete local branch
-                  git push origin -d $feature # delete remote branch
-                  git checkout $new_feature
-                  git push origin $new_feature
+                  #new_feature="MERGECHED-${feature}"
+                  #git branch -m $feature $new_feature
+                  #git branch -d $feature # delete local branch
+                  #git push origin -d $feature # delete remote branch
+                  #git checkout $new_feature
+                  #git push origin $new_feature
                   git checkout develop
-                  git merge $new_feature
+                  git merge $feature
+                  veriry_merge=$(git branch --list ${release} --merged | wc -l)
+                  if [ $veriry_merge -eq 0 ]; then
+                    echo "                                                                         "
+                    echo -e "........................ WARNING ....................................."
+                    echo -e "not merge develop => ${feature}"
+                    echo -e "......................................................................"
+                    exit 1
+                  fi
                   git push -u origin develop
+                  git push origin -d $feature
+                  git branch -d $feature
                 fi
               else
                 echo "WARNING: not found branch named feature chapi"
