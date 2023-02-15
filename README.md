@@ -23,7 +23,6 @@
   <summary>Uninstall </summary>
 
   ## uninstall
-  fantistico
   ```
     sudo rm -f /usr/local/bin/chapi && sudo rm -rf /usr/local/etc/chapi.d
   ```
