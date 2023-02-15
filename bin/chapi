@@ -1,18 +1,20 @@
-git pull
-file_version=""
-if [ -e ${PWD##*/}.php ]; then
-  file_version="${PWD##*/}.php"
-else
-  if [ -e style.css ]; then
-    file_version="style.css"
+if [ "$USER" != "root" ]; then
+  git pull
+  file_version=""
+  if [ -e ${PWD##*/}.php ]; then
+    file_version="${PWD##*/}.php"
   else
-    if [ -e .version ]; then
-      file_version=".version"
-    fi
-  fi 
-  
-fi
-case $1 in
+    if [ -e style.css ]; then
+      file_version="style.css"
+    else
+      if [ -e .version ]; then
+        file_version=".version"
+      fi
+    fi 
+    
+  fi
+
+  case $1 in
   "flow")
     case $2 in
       "release"|"-r") # end nivel 2
@@ -29,7 +31,7 @@ case $1 in
                   repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
                   version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
                   
-                  if [[ $(git status --porcelain) ]]; then
+                  if [ $(git status --porcelain) ]; then
                     git stash
                   fi
 
@@ -102,7 +104,7 @@ case $1 in
             version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
             
             release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-            if [[ $release ]]; then
+            if [ $release ]; then
               git checkout "${release}"
               git tag -a $version_only_number -m "${version_only_number}"
 
@@ -140,7 +142,7 @@ case $1 in
             ;;
           "delete"|"-d")
             release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-            if [[ $release ]]; then
+            if [ $release ]; then
               git checkout develop
               git branch -d "${release}" # delete branch local
               git push origin -d $release # delete branch remote
@@ -163,7 +165,7 @@ case $1 in
               texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
               
               # verify is changes exist create to stash the changes
-              if [[ $(git status --porcelain) ]]; then
+              if [ $(git status --porcelain) ]; then
                 git stash
               fi
               
@@ -184,7 +186,7 @@ case $1 in
               feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $feature ]; then
                 git checkout $feature
-                if [[ $(git status --porcelain) ]]; then
+                if [ $(git status --porcelain) ]; then
                   echo -e "************************ WARNING *************************************"
                   echo -e "********* The change is active please commits in ${feature} **********"
                   echo -e "**********************************************************************"
@@ -227,7 +229,7 @@ case $1 in
                 texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
                 
                 # verify is changes exist create to stash the changes
-                if [[ $(git status --porcelain) ]]; then
+                if [ $(git status --porcelain) ]; then
                   git stash
                 fi
                 
@@ -250,7 +252,7 @@ case $1 in
               bugfix=$(git branch | grep "BUGFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $bugfix ]; then
                 git checkout $bugfix
-                if [[ $(git status --porcelain) ]]; then
+                if [ $(git status --porcelain) ]; then
                   echo -e "************************ WARNING *************************************"
                   echo -e "********* The change is active please commits in ${bugfix} **********"
                   echo -e "**********************************************************************"
@@ -294,7 +296,7 @@ case $1 in
               texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
               
               # verify is changes exist create to stash the changes
-              if [[ $(git status --porcelain) ]]; then
+              if [ $(git status --porcelain) ]; then
                 git stash
               fi
               
@@ -317,7 +319,7 @@ case $1 in
               hotfix=$(git branch | grep "HOTFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $hotfix ]; then
                 git checkout $hotfix
-                if [[ $(git status --porcelain) ]]; then
+                if [ $(git status --porcelain) ]; then
                   echo -e "************************ WARNING *************************************"
                   echo -e "********* The change is active please commits in ${hotfix} **********"
                   echo -e "**********************************************************************"
@@ -512,4 +514,7 @@ case $1 in
   *)
     echo "$1 command not recognized"
     ;;
-esac
+  esac
+else
+  echo "you don't have permission as root"
+fi
