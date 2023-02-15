@@ -1,21 +1,22 @@
-if [ "$USER" != "root" ]; then
-  git pull
-  file_version=""
-  if [ -e ${PWD##*/}.php ]; then
-    file_version="${PWD##*/}.php"
-  else
-    if [ -e style.css ]; then
-      file_version="style.css"
-    else
-      if [ -e .version ]; then
-        file_version=".version"
-      fi
-    fi 
-    
-  fi
 
-  case $1 in
-  "flow")
+git pull
+file_version=""
+if [ -e ${PWD##*/}.php ]; then
+  file_version="${PWD##*/}.php"
+else
+  if [ -e style.css ]; then
+    file_version="style.css"
+  else
+    if [ -e .version ]; then
+      file_version=".version"
+    fi
+  fi 
+  
+fi
+
+case $1 in
+"flow")
+  if [ "$USER" != "root" ]; then
     case $2 in
       "release"|"-r") # end nivel 2
         case $3 in
@@ -24,14 +25,13 @@ if [ "$USER" != "root" ]; then
             if [ $branch_count -eq 0 ]; then
               release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
               if [ -z $release ]; then
-                #if [ "$USER" != "root" ]; then
                 if [ -d "wp-content-mu-plugins" ]; then
                   
                   #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
                   repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
                   version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
                   
-                  if [ $(git status --porcelain) ]; then
+                  if [[ $(git status --porcelain) ]]; then
                     git stash
                   fi
 
@@ -87,9 +87,6 @@ if [ "$USER" != "root" ]; then
                   git checkout -b "RELEASE/${version_only_number}"
                   git push -u origin "RELEASE/${version_only_number}"
                 fi
-                # else
-                #   echo "please exit the root"
-                # fi
               else
                 echo "WARNING: There is already a release"
               fi
@@ -99,7 +96,6 @@ if [ "$USER" != "root" ]; then
             fi
             ;;
           "finish"|"-f") # end nivel 3
-            #if [ "$USER" != "root" ]; then
             repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
             version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
             
@@ -133,12 +129,6 @@ if [ "$USER" != "root" ]; then
             else
               echo "no release branch found"
             fi
-
-            # else
-            #   echo "please exit the root"
-            # fi
-            
-            
             ;;
           "delete"|"-d")
             release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
@@ -151,12 +141,11 @@ if [ "$USER" != "root" ]; then
             ;;
         esac
         
-         
+          
         ;;
       "feature"|"-f") # end nivel 2
         case $3 in
           "start"|"-s") # en nivel 3
-            #if [ "$USER" != "root" ]; then
             release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
             if [ -z $release ]; then
               prompt=$4
@@ -165,7 +154,7 @@ if [ "$USER" != "root" ]; then
               texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
               
               # verify is changes exist create to stash the changes
-              if [ $(git status --porcelain) ]; then
+              if [[ $(git status --porcelain) ]]; then
                 git stash
               fi
               
@@ -176,9 +165,6 @@ if [ "$USER" != "root" ]; then
             else
               echo "WARNING: A feature cannot be created because a ${release} exists"
             fi
-            # else
-            #   echo "please exit the root"
-            # fi      
             ;;
           "finish"|"-f") #$3
             prompt=$4
@@ -186,10 +172,11 @@ if [ "$USER" != "root" ]; then
               feature=$(git branch | grep "CHAPI-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $feature ]; then
                 git checkout $feature
-                if [ $(git status --porcelain) ]; then
-                  echo -e "************************ WARNING *************************************"
-                  echo -e "********* The change is active please commits in ${feature} **********"
-                  echo -e "**********************************************************************"
+                if [[ $(git status --porcelain) ]]; then
+                  echo "                                                                         "
+                  echo -e "........................ WARNING ....................................."
+                  echo -e "The change is active please commits in ${feature}"
+                  echo -e "......................................................................"
                 else
                   new_feature="MERGECHED-${feature}"
                   git branch -m $feature $new_feature
@@ -220,29 +207,25 @@ if [ "$USER" != "root" ]; then
       "bugfix"|"-b"|"-bf") # end nivel 2
         case $3 in
           "start"|"-s") # en nivel 3
-            if [ "$USER" != "root" ]; then
-              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-              if [ $release ]; then
-                prompt=$4
-                contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
-                contador=$(echo $contador_curl | sed 's/{//g' | sed 's/}//g' | sed 's/value//g' | sed 's/ //g' | sed 's/://g' | sed 's/"//g')        
-                texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
-                
-                # verify is changes exist create to stash the changes
-                if [ $(git status --porcelain) ]; then
-                  git stash
-                fi
-                
-                git checkout $release
-                branch_name="BUGFIX-${contador}/${texto}"
-                git checkout -b $branch_name
-                git push --set-upstream origin $branch_name
-                echo -e "${branch_name} :: new branch created"
-              else
-                echo "WARNING: A bugfix cannot be created because a not exists a release"
+            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            if [ $release ]; then
+              prompt=$4
+              contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
+              contador=$(echo $contador_curl | sed 's/{//g' | sed 's/}//g' | sed 's/value//g' | sed 's/ //g' | sed 's/://g' | sed 's/"//g')        
+              texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
+              
+              # verify is changes exist create to stash the changes
+              if [[ $(git status --porcelain) ]]; then
+                git stash
               fi
+              
+              git checkout $release
+              branch_name="BUGFIX-${contador}/${texto}"
+              git checkout -b $branch_name
+              git push --set-upstream origin $branch_name
+              echo -e "${branch_name} :: new branch created"
             else
-              echo "please exit the root"
+              echo "WARNING: A bugfix cannot be created because a not exists a release"
             fi
             ;;
           "finish"|"-f") # en nivel 3
@@ -252,10 +235,11 @@ if [ "$USER" != "root" ]; then
               bugfix=$(git branch | grep "BUGFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $bugfix ]; then
                 git checkout $bugfix
-                if [ $(git status --porcelain) ]; then
-                  echo -e "************************ WARNING *************************************"
-                  echo -e "********* The change is active please commits in ${bugfix} **********"
-                  echo -e "**********************************************************************"
+                if [[ $(git status --porcelain) ]]; then
+                  echo " "
+                  echo -e "........................ WARNING ....................................."
+                  echo -e "The change is active please commits in ${bugfix}"
+                  echo -e "......................................................................"
                 else
                   new_bugfix="MERGECHED-${bugfix}"
                   git branch -m $bugfix $new_bugfix
@@ -287,7 +271,6 @@ if [ "$USER" != "root" ]; then
       "hotfix"|"-h"|"-hf") # end nivel 2
         case $3 in
           "start"|"-s") # en nivel 3
-            #if [ "$USER" != "root" ]; then
             main=$(git branch | grep "main" | sed 's/*//g' | sed 's/ //g')
             if [ $main ]; then
               prompt=$4
@@ -296,7 +279,7 @@ if [ "$USER" != "root" ]; then
               texto=$(echo $prompt | sed 's/"//g' | sed 's/ /-/g')
               
               # verify is changes exist create to stash the changes
-              if [ $(git status --porcelain) ]; then
+              if [[ $(git status --porcelain) ]]; then
                 git stash
               fi
               
@@ -308,9 +291,6 @@ if [ "$USER" != "root" ]; then
             else
               echo "WARNING: A bugfix cannot be created because a not exists a main"
             fi
-            # else
-            #   echo "please exit the root"
-            # fi
             ;;
           "finish"|"-f") # en nivel 3
             prompt=$4
@@ -319,10 +299,11 @@ if [ "$USER" != "root" ]; then
               hotfix=$(git branch | grep "HOTFIX-${prompt}" | sed 's/*//g' | sed 's/ //g')
               if [ $hotfix ]; then
                 git checkout $hotfix
-                if [ $(git status --porcelain) ]; then
-                  echo -e "************************ WARNING *************************************"
-                  echo -e "********* The change is active please commits in ${hotfix} **********"
-                  echo -e "**********************************************************************"
+                if [[ $(git status --porcelain) ]]; then
+                  echo " "
+                  echo -e "........................ WARNING ....................................."
+                  echo -e "The change is active please commits in ${hotfix}"
+                  echo -e "......................................................................"
                 else
                   new_hotfix="MERGECHED-${hotfix}"
                   git branch -m $hotfix $new_hotfix
@@ -394,17 +375,30 @@ if [ "$USER" != "root" ]; then
         version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
         refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
         if [ $refstags ]; then
-          echo "Status: The next stage can now be created"
+          branch_remote_chapi_count=$(git branch -r --list origin/HOTFIX* | wc -l)
+          branch_local_chapi_count=$(git branch --list HOTFIX* | wc -l)
+          if [ $branch_remote_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ]; then
+            echo "Status: please finalize open [HOTFIX]"
+          else
+            echo "Status: The next stage can now be created"
+          fi
         else
+          release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+          if [ $release ]; then
+            branch_remote_chapi_count=$(git branch -r --list origin/BUGFIX* | wc -l)
+            branch_local_chapi_count=$(git branch --list BUGFIX* | wc -l)
+            if [ $branch_remote_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ]; then
+              echo "Status: please finalize open [BUGFIX]"
+            else
+              echo "Status: please finalize the active release"
+            fi
+          else
           branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
           branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
           if [ $branch_remote_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ]; then
             echo "Status: please finalize open [CHAPI] features"
           else
-            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-            if [ $release ]; then
-              echo "Status: please finalize the active release"
-            else
+            
               branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
               branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
               if [ $branch_remote_mergeched_count -gt 0 ] || [ $branch_local_mergeched_count -gt 0 ]; then
@@ -412,7 +406,7 @@ if [ "$USER" != "root" ]; then
               else
                 echo "Status: A release can now be created of version ${version_only_number} in github"
               fi
-            fi
+          fi
             
             
             
@@ -426,95 +420,88 @@ if [ "$USER" != "root" ]; then
         echo "Version: ${version_only_number}"
         ;;
     esac
-    ;;
-  "--version"|"-v"|"--v")
-    repo_version=$(grep "Version:[0-9 ][0-9]*\.[0-9][0-9]*.*" /usr/local/etc/chapi.d/.version | sed 's/[ #]//g' | awk '{print $1}')
-    echo "Chapi $repo_version"
-    ;;
-  "uninstall"|"-ui")
-    sh /usr/local/etc/chapi.d/uninstall.sh
-    ;;
-  "repos"|"repositories"|"list")
-    case $2 in
-      "check"|"-ck")
-        #if [ "$USER" == "root" ]; then
-          folders=$(find -name ".git" -type d | sed 's/\.git//g' | sed 's/\.\///g')
-          for folder in $folders; do
-              cd $folder
-              git pull
-              # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
-              # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
-              # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
-              # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
-              # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
-              #   echo "this repo is not release please check $folder"         
-              # fi
-              fileVersion=""
-              if [ -e ${PWD##*/}.php ]; then
-                fileVersion="${PWD##*/}.php"
-              else
-                if [ -e style.css ]; then
-                  fileVersion="style.css"
-                else
-                  if [ -e .version ]; then
-                    fileVersion=".version"
-                  fi
-                fi 
-                
+  else
+    echo "you don't have permission as root"
+  fi
+  ;;
+"--version"|"-v"|"--v")
+  repo_version=$(grep "Version:[0-9 ][0-9]*\.[0-9][0-9]*.*" /usr/local/etc/chapi.d/.version | sed 's/[ #]//g' | awk '{print $1}')
+  echo "Chapi $repo_version"
+  ;;
+"uninstall"|"-ui")
+  sh /usr/local/etc/chapi.d/uninstall.sh
+  ;;
+"repos"|"repositories"|"list")
+  case $2 in
+    "check"|"-ck")
+      folders=$(find -name ".git" -type d | sed 's/\.git//g' | sed 's/\.\///g')
+      for folder in $folders; do
+          cd $folder
+          git pull
+          # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+          # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+          # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+          # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+          # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+          #   echo "this repo is not release please check $folder"         
+          # fi
+          fileVersion=""
+          if [ -e ${PWD##*/}.php ]; then
+            fileVersion="${PWD##*/}.php"
+          else
+            if [ -e style.css ]; then
+              fileVersion="style.css"
+            else
+              if [ -e .version ]; then
+                fileVersion=".version"
               fi
+            fi 
+            
+          fi
 
-              repo_version=$(grep "Version:" ${fileVersion} | sed 's/ //g' | awk '{print $1}')
-              version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
-              refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
-              if [ -z $refstags ]; then
-                echo "----------------------------------------------------------------------------"
-                echo "${folder} not release version: ${version_only_number}"
-                echo "............................................................................"
-              fi
-              cd $POSCHAPIN_HOME
-          done
-        # else
-        #   echo "Please enter to root" 
-        # fi
-        ;;
-      *)
-        echo "WARNING: the command no exist"
-        ;;
-    esac
-    ;;
-  "here")
-    case $2 in
-      "check"|"-ck")
-        #if [ "$USER" == "root" ]; then
-        git pull
-        # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
-        # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
-        # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
-        # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
-        # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
-        #   echo "this repo is not flow correct please check"         
-        # fi
-        repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-        version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
-        refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
-        if [ -z $refstags ]; then
-          echo "----------------------------------------------------------------------------"
-          echo "Not release version: ${version_only_number}"
-          echo "............................................................................"
-        fi
-        # else
-        #   echo "Please enter to root" 
-        # fi
-        ;;
-      *)
-        echo "WARNING: the command no exist"
-        ;;
-    esac
-    ;;
-  *)
-    echo "$1 command not recognized"
-    ;;
+          repo_version=$(grep "Version:" ${fileVersion} | sed 's/ //g' | awk '{print $1}')
+          version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+          refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
+          if [ -z $refstags ]; then
+            echo "----------------------------------------------------------------------------"
+            echo "${folder} not release version: ${version_only_number}"
+            echo "............................................................................"
+          fi
+          cd $POSCHAPIN_HOME
+      done
+      ;;
+    *)
+      echo "WARNING: the command no exist"
+      ;;
   esac
-else
-  echo "you don't have permission as root"
-fi
+  ;;
+"here")
+  case $2 in
+    "check"|"-ck")
+      
+      git pull
+      # branch_remote_chapi_count=$(git branch -r --list origin/CHAPI* | wc -l)
+      # branch_remote_mergeched_count=$(git branch -r --list origin/MERGECHED* | wc -l)
+      # branch_local_chapi_count=$(git branch --list CHAPI* | wc -l)
+      # branch_local_mergeched_count=$(git branch --list MERGECHED* | wc -l)
+      # if [ $branch_local_chapi_count -gt 0 ] || [ $branch_local_chapi_count -gt 0 ] || [ $branch_remote_chapi_count -gt 0 ] || [ $branch_remote_mergeched_count -gt 0 ]; then
+      #   echo "this repo is not flow correct please check"         
+      # fi
+      repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+      version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+      refstags=$(git ls-remote --tags | grep "${version_only_number}" | awk '{print $2}')
+      if [ -z $refstags ]; then
+        echo "----------------------------------------------------------------------------"
+        echo "Not release version: ${version_only_number}"
+        echo "............................................................................"
+      fi
+      ;;
+    *)
+      echo "WARNING: the command no exist"
+      ;;
+  esac
+  ;;
+*)
+  echo "$1 command not recognized"
+  ;;
+esac
