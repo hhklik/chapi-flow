@@ -23,107 +23,165 @@ case $1 in
           "start"|"-s")     #end nivel 3
             branch_count=$(git branch --list CHAPI* | wc -l)
             if [ $branch_count -eq 0 ]; then
-              release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
-              if [ -z $release ]; then
-                if [ -d "wp-content-mu-plugins" ]; then
-                  
-                  #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
-                  repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-                  version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
-                  
-                  if [[ $(git status --porcelain) ]]; then
-                    git stash
-                  fi
-
-                  git checkout develop
-                  git checkout -b "RELEASE/${version_only_number}"
-                  
-                  git checkout -b "CROLFIX/genetate-requirements"
-                  
-                  
-                  
-                  rm -f release/plugins.json release/plugins-inactive.json release/themes.json
-                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
-                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
-                  docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
-                  
-                  docker-compose -f docker-compose-wpcli.yml down
-
-                  docker-compose -f docker-compose-python.yml run python python /release/prepare.py
-
-                  docker-compose -f docker-compose-python.yml down
-
-                  git add .
-                  git commit -m "Generate-requiremets-of-${version_only_number}"
-                  #git tag -a $version_only_number -m "${version_only_number}"
-                  #git checkout develop
-                  git checkout "RELEASE/${version_only_number}"
-                  git merge "CROLFIX/genetate-requirements"
-                  git push -u origin "RELEASE/${version_only_number}"
-                  git branch -d "CROLFIX/genetate-requirements"
-                  
-
-
-                  #-------------------- BITACORTA -------------------
-                  
-                  
-                  # current_date=$(date)
-                  # echo -e "------------------------- ${current_date} --------------------------------------" >> release/.bitacora
-                  # echo -e "PosChapin $repo_version" >> release/.bitacora
-                  # echo -e "WordPress Version $wordpress_version" >> release/.bitacora
-                  # #echo -e "PLUGINS" >> release/.bitacora
-                  # #cat release/plugins.json >> release/.bitacora
-                  # #echo -e "\n" >> release/.bitacora
-                  # #echo -e "THEMES" >> release/.bitacora
-                  # #cat release/themes.json >> release/.bitacora
-                  # echo -e "\n" >> release/.bitacora
-                  # echo -e "************************** ${current_date} *************************************" >> release/.bitacora
-                  
-                else
-                  repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-                  version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
-
-                  git checkout develop
-                  git checkout -b "RELEASE/${version_only_number}"
-                  git push -u origin "RELEASE/${version_only_number}"
+              #release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+              #if [ -z $release ]; then
+              
+              if [ -d "wp-content-mu-plugins" ]; then
+                
+                #wordpress_version=$(grep "\$wp_version = " wp-core/wp-includes/version.php | sed 's/;//' | sed "s/'//g" | awk '{print $3}')
+                repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+                version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+                
+                if [[ $(git status --porcelain) ]]; then
+                  git stash
                 fi
+
+                git checkout develop
+                git checkout -b "RELEASE/${version_only_number}"
+                
+                git checkout -b "CROLFIX/genetate-requirements"
+                
+                
+                
+                rm -f release/plugins.json release/plugins-inactive.json release/themes.json
+                docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=active --format=json > release/plugins.json
+                docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp plugin list --status=inactive --format=json > release/plugins-inactive.json
+                docker-compose -f docker-compose-wpcli.yml run wordpress-cli-util wp theme list --format=json > release/themes.json
+                
+                docker-compose -f docker-compose-wpcli.yml down
+
+                docker-compose -f docker-compose-python.yml run python python /release/prepare.py
+
+                docker-compose -f docker-compose-python.yml down
+
+                git add .
+                git commit -m "Generate-requiremets-of-${version_only_number}"
+                #git tag -a $version_only_number -m "${version_only_number}"
+                #git checkout develop
+                git checkout "RELEASE/${version_only_number}"
+                git merge "CROLFIX/genetate-requirements"
+                git push -u origin "RELEASE/${version_only_number}"
+                git branch -d "CROLFIX/genetate-requirements"
+                
+
+
+                #-------------------- BITACORTA -------------------
+                
+                
+                # current_date=$(date)
+                # echo -e "------------------------- ${current_date} --------------------------------------" >> release/.bitacora
+                # echo -e "PosChapin $repo_version" >> release/.bitacora
+                # echo -e "WordPress Version $wordpress_version" >> release/.bitacora
+                # #echo -e "PLUGINS" >> release/.bitacora
+                # #cat release/plugins.json >> release/.bitacora
+                # #echo -e "\n" >> release/.bitacora
+                # #echo -e "THEMES" >> release/.bitacora
+                # #cat release/themes.json >> release/.bitacora
+                # echo -e "\n" >> release/.bitacora
+                # echo -e "************************** ${current_date} *************************************" >> release/.bitacora
+                
               else
-                echo "WARNING: There is already a release"
+                repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+                version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+
+                git checkout develop
+                git checkout -b "RELEASE/${version_only_number}"
+                git push -u origin "RELEASE/${version_only_number}"
               fi
+              # else
+              #   echo "WARNING: There is already a release"
+              # fi
+              
+              repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+              version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+              #change new version
+              current_date=$(date +%Y-%m-%d)
+              one_month_later=$(date -d "$current_date + 1 month" +%Y-%m-%d)
+              echo $one_month_later
+              this_month=$(date -d "$one_month_later" +%m)
+              this_year=$(date -d "$one_month_later" +%y)
+              current_version=$version_only_number
+              #IFS='.' read -r year month n <<< "$current_version"
+              year=$(echo "$current_version" | cut -d'.' -f1)
+              month=$(echo "$current_version" | cut -d'.' -f2)
+              n=$(echo "$current_version" | cut -d'.' -f3)
+              [ $this_month -ne $month ] && year=$this_year && month=$this_month && n=0 || let n++
+              new_version="$year.$month.$n"
+              
+              git checkout develop
+              git checkout -b "CROLFIX/new-stage"
+              
+              sed -i "s/Version:.*/Version: ${new_version}/g" ${file_version}
+
+              git add .
+              git commit -m "New stage of version: ${version_only_number}"
+              git checkout develop
+              git merge "CROLFIX/new-stage"
+              veriry_merge=$(git branch --list CROLFIX/new-stage --merged | wc -l)
+              if [ $veriry_merge -eq 0 ]; then
+                echo "                                                                         "
+                echo -e "........................ WARNING ....................................."
+                echo -e "The new-stage not final CROLFIX/new-stage"
+                echo -e "......................................................................"
+                exit 1
+              fi
+              git push -u origin develop
+              git push origin -d CROLFIX/new-stage
+              git branch -d "CROLFIX/new-stage"
+
             else
               echo "WARNING: there are features pending merge develop"
               git branch --list CHAPI*
             fi
             ;;
           "finish"|"-f") # end nivel 3
-            repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-            version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
             
-            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            version_enter=$4
+            release=$(git branch | grep "RELEASE\/$version_enter" | sed 's/*//g' | sed 's/ //g')
             if [ $release ]; then
               git checkout "${release}"
+              repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+              version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+
+
               git tag -a $version_only_number -m "${version_only_number}"
 
-              mergeched_release="MERGECHED-${release}"
-              git branch -m $release $mergeched_release
-              git branch -d $release # delete local branch
-              git push origin -d $release # delete remote branch
-              git checkout $mergeched_release
-              git push origin $mergeched_release
+              #mergeched_release="MERGECHED-${release}"
+              #git branch -m $release $mergeched_release
+              #git branch -d $release # delete local branch
+              #git push origin -d $release # delete remote branch
+              #git checkout $mergeched_release
+              #git push origin $release
               #git checkout develop
               #git merge $mergeched_release
               #git push -u origin develop
               
               git checkout develop
-              git merge "${mergeched_release}"
+              git merge "${release}"
+              veriry_merge=$(git branch --list ${release} --merged | wc -l)
+              if [ $veriry_merge -eq 0 ]; then
+                echo "                                                                         "
+                echo -e "........................ WARNING ....................................."
+                echo -e "not merge develop => ${release}"
+                echo -e "......................................................................"
+                exit 1
+              fi
               git push -u origin develop
               git checkout main
-              git merge "${mergeched_release}"
+              git merge "${release}"
+              veriry_merge=$(git branch --list ${release} --merged | wc -l)
+              if [ $veriry_merge -eq 0 ]; then
+                echo "                                                                         "
+                echo -e "........................ WARNING ....................................."
+                echo -e "not merge main => ${release}"
+                echo -e "......................................................................"
+                exit 1
+              fi
               git push -u origin main
 
               # Eliminar mergeched cuando se finalize el release
-              git push origin -d $(git branch -a --list MERGECHED*)
-              git branch -d $(git branch --list MERGECHED*)
+              ##git push origin -d $(git branch -a --list MERGECHED*)
+              ##git branch -d $(git branch --list MERGECHED*)
               
               
             else
@@ -146,7 +204,9 @@ case $1 in
       "feature"|"-f") # end nivel 2
         case $3 in
           "start"|"-s") # en nivel 3
-            release=$(git branch | grep "RELEASE\/" | sed 's/*//g' | sed 's/ //g')
+            repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+            version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+            release=$(git branch | grep "RELEASE\/${version_only_number}" | sed 's/*//g' | sed 's/ //g')
             if [ -z $release ]; then
               prompt=$4
               contador_curl=$(curl https://api.countapi.xyz/hit/poschapin.com/YoYYm0RLM4Du0B737x5P)
