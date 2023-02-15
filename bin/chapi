@@ -305,18 +305,19 @@ case $1 in
                   echo -e "The change is active please commits in ${hotfix}"
                   echo -e "......................................................................"
                 else
-                  new_hotfix="MERGECHED-${hotfix}"
-                  git branch -m $hotfix $new_hotfix
-                  git branch -d $hotfix # delete local branch
-                  git push origin -d $hotfix # delete remote branch
-                  git checkout $new_hotfix
-                  git push origin $new_hotfix
+                  #new_hotfix="MERGECHED-${hotfix}"
+                  #git branch -m $hotfix $new_hotfix
+                  #git branch -d $hotfix # delete local branch
+                  #git push origin -d $hotfix # delete remote branch
+                  git checkout $hotfix
+                  git push origin $hotfix
                   git checkout $main
-                  git merge $new_hotfix
+                  git merge $hotfix
                   git push -u origin $main
                   git checkout develop
-                  git merge $main
+                  git merge $hotfix
                   git push -u origin develop
+                  git checkout main
                 fi
               else
                 echo "WARNING: not found branch named bugfix"
