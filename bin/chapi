@@ -313,11 +313,26 @@ case $1 in
                   git push origin $hotfix
                   git checkout $main
                   git merge $hotfix
-                  git push -u origin $main
-                  git checkout develop
-                  git merge $hotfix
-                  git push -u origin develop
-                  git checkout main
+                  veriry_merge=$(git branch --list $hotfix --merged | wc -l)
+                  if [veriry_merge -gt 0 ]; then
+                    git push -u origin $main
+                    git checkout develop
+                    git merge $hotfix
+                    veriry_merge=$(git branch --list $hotfix --merged | wc -l)
+                    if [veriry_merge -gt 0 ]; then
+                      git push -u origin develop
+                      git checkout main
+                      git push origin -d $hotfix # delete remote branch
+                      git branch -d $hotfix # delete local branch
+                    else
+                      echo "not merged $hotfix => develop"
+                      exit 1
+                    fi
+                    
+                  else
+                    echo "not merged $hotfix => main"
+                  fi
+                  
                 fi
               else
                 echo "WARNING: not found branch named bugfix"
