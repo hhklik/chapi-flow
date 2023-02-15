@@ -366,6 +366,7 @@ case $1 in
         if [ $refstags ]; then
           git checkout main
           git checkout -b "CROLFIX/change-new-version"
+          echo ""
               
           #change new version
           this_month=$(date +%m)
