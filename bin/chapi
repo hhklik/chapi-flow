@@ -97,13 +97,13 @@ case $1 in
                   git push -u origin "RELEASE/${version_only_number}"
                 fi
               else
-                repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
-                version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
+                #repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
+                #version_only_number=$(echo $repo_version | sed 's/Version://g' | sed 's/ //g')
 
                 git checkout develop
                 git checkout -b "RELEASE/${version_dev_only_number}"
                 git push -u origin "RELEASE/${version_dev_only_number}"
-
+			
               fi
               
               repo_version=$(grep "Version:" ${file_version} | sed 's/ //g' | awk '{print $1}')
